@@ -1,0 +1,25 @@
+# Code owners: the reviewer GitHub requests on every pull request that touches a matching path.
+# The last matching line wins. Everything has one owner; the lines below name the paths where a
+# change decides what leaves the laptop, what may reach ClickUp, or what CI trusts, so a ruleset can
+# require their review even when the catch-all is relaxed.
+
+*                                   @adhibuchori
+
+# CI and the scripts it trusts to judge every pull request.
+/.github/                           @adhibuchori
+/scripts/check/                     @adhibuchori
+/scripts/ci/                        @adhibuchori
+
+# What may reach ClickUp and what may leave: the only HTTP client, redaction, host rules, the
+# settings that hold the token, the tool contract, and what is written to disk.
+/src/adapters/clickup/              @adhibuchori
+/src/core/security/                 @adhibuchori
+/src/config/settings.ts             @adhibuchori
+/src/env.ts                         @adhibuchori
+/src/tools/registry/                @adhibuchori
+/src/adapters/store/                @adhibuchori
+/src/adapters/files/                @adhibuchori
+
+# Claude Code hooks and permissions.
+/.claude/hooks/                     @adhibuchori
+/.claude/settings.json              @adhibuchori

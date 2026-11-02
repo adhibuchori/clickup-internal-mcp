@@ -67,4 +67,4 @@ tools still get the text part and every saved note; describe images from a clien
 claude.ai in the browser, ChatGPT and ClickUp Brain only connect to **remote** MCP servers over
 HTTPS. That needs this server hosted somewhere reachable, with authentication, which also changes
 where the ClickUp token lives (on a server instead of each person's laptop). It is a separate
-decision with its own security review; see phase 8 in [plan.md](plan.md).
+decision with its own security review.

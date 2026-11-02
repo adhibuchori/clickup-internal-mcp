@@ -13,5 +13,8 @@ dist/
 .data/
 mirror/
 
+# Private planning notes: kept on the maintainer's machine, never published
+docs/plan.md
+
 # OS files
 .DS_Store

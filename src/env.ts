@@ -1,7 +1,8 @@
 /**
  * The only file in src/ that reads process.env (AGENTS.md Rule 22). Values come from the
- * environment, then from the first .env file found: CLICKUP_ENV_FILE, the project folder, the
- * folder of a compiled executable, then the data folder. The environment wins over the file.
+ * environment, then from the first settings file found (`envFileCandidates`). The environment wins
+ * over the file. Next to a compiled executable, `clickup-internal-mcp.env` works as well as `.env`,
+ * because a file named only ".env" is awkward to create in Windows Explorer.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
@@ -18,23 +19,41 @@ function definedOnly(source: NodeJS.ProcessEnv): Record<string, string> {
 
 const PROJECT_DIR = join(import.meta.dirname, '..');
 
-export function loadSettings(): Settings {
-  const environment = definedOnly(process.env);
-  const platform = {
+function platformInfo(environment: Record<string, string>) {
+  return {
     platform: process.platform,
     home: homedir(),
     localAppData: environment['LOCALAPPDATA'] ?? '',
     xdgDataHome: environment['XDG_DATA_HOME'] ?? '',
     timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   };
-  const dataDir = environment['CLICKUP_DATA_DIR'] || defaultDataDir(platform);
-  const candidates = [
+}
+
+/** The settings files worth naming to a person: beside the executable, or in the checkout. */
+export function suggestedEnvFiles(compiled: boolean): string[] {
+  const beside = dirname(process.execPath);
+  return compiled
+    ? [join(beside, 'clickup-internal-mcp.env'), join(beside, '.env')]
+    : [join(PROJECT_DIR, '.env')];
+}
+
+/** Where settings files are looked for, in order. */
+function envFileCandidates(): string[] {
+  const environment = definedOnly(process.env);
+  const dataDir = environment['CLICKUP_DATA_DIR'] || defaultDataDir(platformInfo(environment));
+  const beside = dirname(process.execPath);
+  return [
     environment['CLICKUP_ENV_FILE'] ?? '',
     join(PROJECT_DIR, '.env'),
-    join(dirname(process.execPath), '.env'),
+    join(beside, '.env'),
+    join(beside, 'clickup-internal-mcp.env'),
     join(dataDir, '.env'),
   ].filter(Boolean);
-  const file = candidates.find((path) => existsSync(path));
+}
+
+export function loadSettings(): Settings {
+  const environment = definedOnly(process.env);
+  const file = envFileCandidates().find((path) => existsSync(path));
   const fromFile = file ? Object.fromEntries(parseDotEnv(readFileSync(file, 'utf8'))) : {};
-  return parseSettings({ ...fromFile, ...environment }, platform);
+  return parseSettings({ ...fromFile, ...environment }, platformInfo(environment));
 }

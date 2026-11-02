@@ -1,9 +1,10 @@
 # clickup-internal-mcp
 
-Baca workspace ClickUp Anda dari Claude (Claude Code atau Claude Desktop) memakai **token personal
-Anda sendiri**, ketika ClickUp MCP resmi tidak tersedia untuk Anda. Dibuat terutama untuk
-**mengumpulkan requirement** dari ClickUp Docs dan task, dan cukup umum untuk pencarian ClickUp apa
-pun.
+Baca workspace ClickUp Anda dari asisten AI memakai **token personal Anda sendiri**, ketika ClickUp
+MCP resmi tidak tersedia untuk Anda. Bisa dipakai di client MCP apa pun yang menjalankan server lokal:
+Claude Desktop, Claude Code, Cursor, Windsurf, VS Code (Copilot), Gemini CLI, Codex CLI, dan lainnya.
+Dibuat terutama untuk **mengumpulkan requirement** dari ClickUp Docs dan task, dan cukup umum untuk
+pencarian ClickUp apa pun.
 
 [English](README.md)
 
@@ -15,7 +16,7 @@ pun.
   ClickUp.
 - **Data di disk seminimal mungkin.** Hanya yang Anda track yang disimpan. Sisanya dibaca langsung
   dan hanya disimpan di memori beberapa menit.
-- **Gambar ditangani.** Mockup di dokumen di-download sekali. Claude melihat tiap gambar sekali dan
+- **Gambar ditangani.** Mockup di dokumen di-download sekali. Asisten melihat tiap gambar sekali dan
   menyimpan deskripsinya, sehingga pembacaan berikutnya cukup teks.
 
 ## Setup
@@ -35,15 +36,18 @@ Kebutuhan: [Bun](https://bun.sh) 1.3+ (atau Node 22.18+), dan akun ClickUp.
    (`https://app.clickup.com/<workspace id>/...`). Jangan pernah paste token ke chat.
 
 3. **Cek.** `bun run doctor` memastikan token, workspace, dan folder cache, tanpa mencetak token.
-4. **Daftarkan ke Claude.** `bun run setup` mencetak perintah `claude mcp add` dan JSON untuk
-   Claude Desktop yang persis untuk checkout ini.
+4. **Hubungkan client MCP Anda.** `bun run setup` mencetak snippet yang persis untuk Claude Desktop,
+   Claude Code, Cursor, Windsurf, VS Code, Gemini CLI, dan Codex CLI (`--client <id>` untuk satu
+   client). Lihat [docs/clients.md](docs/clients.md).
 
-### Untuk Rekan Tim Tanpa Bun
+### Untuk Rekan Tim yang Tidak Menulis Kode
 
-`bun run build` membuat executable satu file di `dist/` (macOS arm64/x64, Windows x64, Linux x64).
-Setiap orang membuat **token sendiri**; token tidak pernah dibagikan. Taruh `.env` di sebelah
-executable (atau arahkan `CLICKUP_ENV_FILE` ke file itu), jalankan `<executable> doctor`, lalu
-`bun run setup -- --binary <path>` menunjukkan cara mendaftarkannya.
+`bun run build` membuat executable satu file di `dist/` (macOS arm64/x64, Windows x64, Linux x64)
+yang tidak butuh Bun maupun Node. Rekan menaruh executable di satu folder bersama file pengaturan
+`clickup-internal-mcp.env` berisi **token miliknya sendiri**, menjalankan `<executable> doctor`, lalu
+`<executable> setup --client <aplikasinya>` dan menempel snippet-nya. Langkah demi langkah (dalam
+bahasa Inggris): [docs/clients.md](docs/clients.md#for-a-teammate-who-does-not-write-code). Token
+tidak pernah dibagikan.
 
 ## Tools
 
@@ -56,17 +60,17 @@ executable (atau arahkan `CLICKUP_ENV_FILE` ke file itu), jalankan `<executable>
 | `search` | Pencarian full-text atas semua yang Anda track. API ClickUp tidak punya pencarian teks, jadi ini lokal. |
 | `track` | Pilih apa yang disimpan di cache: tambah, hapus, lihat daftar, sync doc, list, folder, atau space. |
 | `changes` | Apa yang berubah di konten yang di-track sejak terakhir dicek atau sejak tanggal tertentu: diff page dan event task. |
-| `view_image` | Menampilkan satu gambar ke Claude. |
-| `note_image` | Menyimpan deskripsi gambar dari Claude, dipakai ulang sampai gambarnya berubah. |
+| `view_image` | Menampilkan satu gambar ke asisten (di client yang bisa menampilkan gambar dari tool). |
+| `note_image` | Menyimpan deskripsi gambar dari asisten, dipakai ulang sampai gambarnya berubah. |
 
 Semua tool menerima URL ClickUp (host `*.clickup.com` apa pun) dan referensi yang dicetak tool lain
 (`task:86c1abcde`, `task:ABC-123`, `doc:…/page:…`, `list:…`). Detail: [docs/tools.md](docs/tools.md).
 
 ## Mengumpulkan Requirement, Langkah Demi Langkah
 
-1. Paste URL doc: *"Baca doc ini dan daftarkan requirement-nya."* Claude memanggil `read_doc`.
+1. Paste URL doc: *"Baca doc ini dan daftarkan requirement-nya."* Asisten memanggil `read_doc`.
 2. Kalau akan dibuka lagi: *"Track doc ini."* Page dan gambarnya di-cache dan bisa dicari.
-3. Mockup: *"Deskripsikan gambar yang belum punya catatan."* Claude membuka tiap gambar sekali dengan
+3. Mockup: *"Deskripsikan gambar yang belum punya catatan."* Asisten membuka tiap gambar sekali dengan
    `view_image` dan menyimpan deskripsinya dengan `note_image` (layar, field, label, aksi, state,
    teks).
 4. Minta strukturnya: user story, acceptance criteria, business rule, dependensi, dan **open
@@ -84,12 +88,12 @@ Semua tool menerima URL ClickUp (host `*.clickup.com` apa pun) dan referensi yan
 - **Menghapus:** `track` dengan `remove` menghapus satu scope; `bun run purge -- --yes` menghapus
   semuanya.
 - **Dikirim ke mana:** hanya ke `api.clickup.com` dan host lampiran ClickUp. Tanpa telemetri. Yang
-  dibaca Claude terkirim ke Anthropic sebagai bagian dari percakapan Anda, sama seperti hal lain yang
-  Anda bagikan.
+  dibaca asisten terkirim ke penyedia AI-nya sebagai bagian dari percakapan Anda, sama seperti hal lain
+  yang Anda bagikan.
 - **Redaksi:** token, key, dan password yang di-paste orang ke doc atau komentar disensor di setiap
   jawaban.
 - **Mirror opsional:** `CLICKUP_MIRROR_DIR` juga menulis doc yang di-track sebagai file Markdown
-  beserta gambarnya, untuk dibaca atau di-`git diff` di luar Claude.
+  beserta gambarnya, untuk dibaca atau di-`git diff` di luar asisten.
 
 ## Konfigurasi
 
@@ -114,6 +118,8 @@ Semua pengaturan ada di `.env` (lihat [.env.example](.env.example)); environment
 - Task yang dihapus di ClickUp tetap ada di cache sampai scope-nya di-untrack.
 - `read_task` menampilkan komentar yang dikembalikan ClickUp dalam satu request (yang terbaru).
 - Whiteboard dan file Figma didaftar sebagai link, tidak dibaca.
+- Aplikasi web (claude.ai di browser, ChatGPT, ClickUp Brain) butuh server remote; server ini
+  berjalan lokal. Lihat [docs/clients.md](docs/clients.md#not-supported-yet-web-apps).
 - Markdown doc berasal dari konversi ClickUp sendiri; sebagian embed tidak ikut terkonversi.
 
 ## Pengembangan

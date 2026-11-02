@@ -1,17 +1,20 @@
 #!/usr/bin/env bun
 /**
- * Command line entry. No argument (or `stdio`) runs the MCP server on stdin/stdout for Claude Code
- * or Claude Desktop. `doctor` checks the setup; `purge --yes` deletes the local cache. stdout
- * belongs to the MCP protocol in server mode, so everything else goes to stderr.
+ * Command line entry. No argument (or `stdio`) runs the MCP server on stdin/stdout for any MCP
+ * client. `setup [--client <id>]` prints how to register it with each client, `doctor` checks the
+ * setup, `purge --yes` deletes the local cache. stdout belongs to the MCP protocol in server mode,
+ * so everything else goes to stderr.
  */
 import { rmSync } from 'node:fs';
+import { join } from 'node:path';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import packageJson from '../package.json' with { type: 'json' };
 import { loadSqlite } from './adapters/store/sqlite.ts';
 import { createRuntime, type Runtime } from './composition/create-runtime.ts';
 import type { Settings } from './config/settings.ts';
 import { runDoctor } from './engine/doctor/doctor.ts';
-import { loadSettings } from './env.ts';
+import { loadSettings, suggestedEnvFiles } from './env.ts';
+import { CLIENT_IDS, isClientId, launchFor, setupGuide } from './config/client-configs.ts';
 import { buildMcpServer } from './tools/registry/build-server.ts';
 
 const say = (line: string): void => void process.stderr.write(`${line}\n`);
@@ -68,13 +71,35 @@ function purge(settings: Settings, args: readonly string[]): void {
   say(`Deleted ${settings.dataDir}.`);
 }
 
+function setup(args: readonly string[]): void {
+  const wanted = args.flatMap((arg, i) =>
+    arg === '--client' && args[i + 1] ? [args[i + 1] ?? ''] : [],
+  );
+  const unknown = wanted.filter((id) => !isClientId(id));
+  if (unknown.length > 0) {
+    say(`Unknown client: ${unknown.join(', ')}. Choose from: ${CLIENT_IDS.join(', ')}`);
+    process.exitCode = 2;
+    return;
+  }
+  const launch = launchFor(process.execPath, join(import.meta.dirname, 'index.ts'));
+  const only = wanted.filter(isClientId);
+  say(
+    setupGuide(
+      launch,
+      suggestedEnvFiles(launch.args.length === 0),
+      only.length > 0 ? only : CLIENT_IDS,
+    ),
+  );
+}
+
 async function main(): Promise<void> {
   const [command = 'stdio', ...args] = process.argv.slice(2);
+  if (command === 'setup') return setup(args);
   const settings = loadSettings();
   if (command === 'doctor') return doctor(settings);
   if (command === 'purge') return purge(settings, args);
   if (command === 'stdio') return serve(settings);
-  say(`Unknown command "${command}". Use: stdio (default), doctor, purge --yes`);
+  say(`Unknown command "${command}". Use: stdio (default), setup, doctor, purge --yes`);
   process.exitCode = 2;
 }
 

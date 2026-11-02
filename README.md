@@ -1,8 +1,10 @@
 # clickup-internal-mcp
 
-Read your ClickUp workspace from Claude (Claude Code or Claude Desktop) through **your own personal
-token**, when the official ClickUp MCP is not available to you. Built first for **gathering
-requirements** from ClickUp Docs and tasks, and general enough for any ClickUp lookup.
+Read your ClickUp workspace from your AI assistant through **your own personal token**, when the
+official ClickUp MCP is not available to you. Works with any MCP client that runs local servers:
+Claude Desktop, Claude Code, Cursor, Windsurf, VS Code (Copilot), Gemini CLI, Codex CLI and others.
+Built first for **gathering requirements** from ClickUp Docs and tasks, and general enough for any
+ClickUp lookup.
 
 [Bahasa Indonesia](README.id.md)
 
@@ -13,7 +15,7 @@ requirements** from ClickUp Docs and tasks, and general enough for any ClickUp l
 - **Quiet.** At most 8 requests in flight and 300 per minute by default, far below ClickUp's limits.
 - **Minimal data on disk.** Only what you track is stored. Everything else is read live and kept in
   memory for a few minutes.
-- **Images handled.** Mockups in docs are downloaded once. Claude looks at each one once and saves
+- **Images handled.** Mockups in docs are downloaded once. The assistant looks at each one once and saves
   a description, so later reads stay text-only.
 
 ## Setup
@@ -34,15 +36,17 @@ Requirements: [Bun](https://bun.sh) 1.3+ (or Node 22.18+), and a ClickUp account
 
 3. **Check.** `bun run doctor` confirms the token, the workspace and the cache folder, without
    printing the token.
-4. **Register with Claude.** `bun run setup` prints the exact `claude mcp add` command and the
-   Claude Desktop JSON for this checkout.
+4. **Connect your MCP client.** `bun run setup` prints the exact snippet for Claude Desktop, Claude
+   Code, Cursor, Windsurf, VS Code, Gemini CLI and Codex CLI (`--client <id>` for one). See
+   [docs/clients.md](docs/clients.md).
 
-### For Teammates Without Bun
+### For Teammates Who Do Not Write Code
 
-`bun run build` makes single-file executables in `dist/` (macOS arm64/x64, Windows x64, Linux x64).
-Each person creates **their own token**; tokens are never shared. Put `.env` next to the executable
-(or point `CLICKUP_ENV_FILE` at it), run `<executable> doctor`, then
-`bun run setup -- --binary <path>` shows how to register it.
+`bun run build` makes single-file executables in `dist/` (macOS arm64/x64, Windows x64, Linux x64)
+that need neither Bun nor Node. A teammate puts the executable in a folder with a
+`clickup-internal-mcp.env` settings file holding **their own token**, runs `<executable> doctor`,
+then `<executable> setup --client <their app>` and pastes the snippet. Step by step:
+[docs/clients.md](docs/clients.md#for-a-teammate-who-does-not-write-code). Tokens are never shared.
 
 ## Tools
 
@@ -55,17 +59,17 @@ Each person creates **their own token**; tokens are never shared. Put `.env` nex
 | `search` | Full-text search over everything you track. ClickUp's API has no text search, so this is local. |
 | `track` | Choose what is cached: add, remove, list, sync a doc, list, folder or space. |
 | `changes` | What changed in tracked content since your last look or a date: page diffs and task events. |
-| `view_image` | Shows one image to Claude. |
-| `note_image` | Saves Claude's description of an image, reused until the image changes. |
+| `view_image` | Shows one image to the assistant (in clients that display images from tools). |
+| `note_image` | Saves the assistant's description of an image, reused until the image changes. |
 
 Every tool accepts ClickUp URLs (any `*.clickup.com` host) and the references the others print
 (`task:86c1abcde`, `task:ABC-123`, `doc:…/page:…`, `list:…`). Details: [docs/tools.md](docs/tools.md).
 
 ## Gathering Requirements, Step by Step
 
-1. Paste a doc URL: *"Read this doc and list the requirements."* Claude calls `read_doc`.
+1. Paste a doc URL: *"Read this doc and list the requirements."* The assistant calls `read_doc`.
 2. If you will come back to it: *"Track this doc."* Its pages and images are cached and searchable.
-3. Mockups: *"Describe the images that have no note yet."* Claude opens each image once with
+3. Mockups: *"Describe the images that have no note yet."* The assistant opens each image once with
    `view_image` and saves the description with `note_image` (screen, fields, labels, actions,
    states, text).
 4. Ask for structure: user stories, acceptance criteria, business rules, dependencies, and **open
@@ -81,12 +85,12 @@ Every tool accepts ClickUp URLs (any `*.clickup.com` host) and the references th
 - **What:** only tracked scopes (pages, tasks, comments, images, notes) plus member names.
   Revisions and task events older than `CLICKUP_CACHE_TTL_DAYS` (30) are dropped.
 - **Remove:** `track` with `remove` deletes one scope; `bun run purge -- --yes` deletes everything.
-- **Sent where:** only to `api.clickup.com` and ClickUp's attachment hosts. No telemetry. What
-  Claude reads goes to Anthropic as part of your conversation, like anything else you share.
+- **Sent where:** only to `api.clickup.com` and ClickUp's attachment hosts. No telemetry. What the
+  assistant reads goes to its AI provider as part of your conversation, like anything else you share.
 - **Redaction:** tokens, keys and passwords that people pasted into docs or comments are masked in
   every answer.
 - **Optional mirror:** `CLICKUP_MIRROR_DIR` also writes tracked docs as Markdown files with their
-  images, for reading or `git diff` outside Claude.
+  images, for reading or `git diff` outside the assistant.
 
 ## Configuration
 
@@ -111,6 +115,8 @@ All settings live in `.env` (see [.env.example](.env.example)); the environment 
 - Tasks deleted in ClickUp stay in the cache until their scope is untracked.
 - `read_task` shows the comments ClickUp returns in one request (the most recent ones).
 - Whiteboards and Figma files are listed as links, not read.
+- Web apps (claude.ai in the browser, ChatGPT, ClickUp Brain) need a remote server; this one runs
+  locally. See [docs/clients.md](docs/clients.md#not-supported-yet-web-apps).
 - Doc Markdown comes from ClickUp's own conversion; some embeds do not survive it.
 
 ## Development

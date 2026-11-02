@@ -4,12 +4,14 @@
 
 ## Project Snapshot
 
-A local MCP server (stdio) that lets Claude read a ClickUp workspace through the user's own
-personal token, built for gathering requirements from ClickUp Docs and tasks. TypeScript on Bun
+A local MCP server (stdio) that lets any MCP client (Claude, Cursor, VS Code, Gemini CLI, Codex
+CLI…) read a ClickUp workspace through the user's own personal token, built for gathering
+requirements from ClickUp Docs and tasks. TypeScript on Bun
 (Node 22.18+ as a fallback), with the MCP SDK, zod and SQLite FTS5 (`bun:sqlite` / `node:sqlite`).
 No other runtime dependency.
 
-- Run: `bun start` (stdio), `bun run doctor`, `bun run purge -- --yes`.
+- Run: `bun start` (stdio), `bun run setup`, `bun run doctor`, `bun run purge -- --yes`.
+- Client snippets: `src/config/client-configs.ts`; guide in [docs/clients.md](docs/clients.md).
 - Tools are described in [docs/tools.md](docs/tools.md), the design in [docs/plan.md](docs/plan.md),
   measurements in [docs/benchmarks.md](docs/benchmarks.md).
 

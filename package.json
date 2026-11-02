@@ -1,8 +1,8 @@
 {
   "name": "clickup-internal-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Local MCP server that lets Claude read a ClickUp workspace through your personal token: docs, tasks, comments and images, with a local full-text index of what you track.",
+  "description": "Local MCP server that lets any MCP client read a ClickUp workspace through your personal token: docs, tasks, comments and images, with a local full-text index of what you track.",
   "license": "UNLICENSED",
   "type": "module",
   "bin": {

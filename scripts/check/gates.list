@@ -10,4 +10,5 @@ code	bash scripts/check/double-assertion.sh
 code	bun run check:folder-shape
 code	bun run check:mocks
 code	bun run check:coverage-policy
+code	bun run check:version
 code	bun run test:coverage

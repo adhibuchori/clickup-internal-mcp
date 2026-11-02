@@ -2,7 +2,7 @@
 /**
  * Command line entry. No argument (or `stdio`) runs the MCP server on stdin/stdout for any MCP
  * client. `setup [--client <id>]` prints how to register it with each client, `doctor` checks the
- * setup, `purge --yes` deletes the local cache. stdout belongs to the MCP protocol in server mode,
+ * setup, `version` prints the version, `purge --yes` deletes the local cache. stdout belongs to the MCP protocol in server mode,
  * so everything else goes to stderr.
  */
 import { rmSync } from 'node:fs';
@@ -17,7 +17,10 @@ import { loadSettings, suggestedEnvFiles } from './env.ts';
 import { CLIENT_IDS, isClientId, launchFor, setupGuide } from './config/client-configs.ts';
 import { buildMcpServer } from './tools/registry/build-server.ts';
 
+/** Errors and the server's own notes: stderr, because stdout carries the protocol in server mode. */
 const say = (line: string): void => void process.stderr.write(`${line}\n`);
+/** Output of the one-shot commands (setup, version, doctor, purge): stdout, so it can be piped. */
+const print = (line: string): void => void process.stdout.write(`${line}\n`);
 
 async function runtime(settings: Settings): Promise<Runtime> {
   return createRuntime({
@@ -54,21 +57,22 @@ async function doctor(settings: Settings): Promise<void> {
     mirrorDir: settings.mirrorDir,
   });
   rt.close();
-  for (const c of checks) say(`${c.ok ? 'ok  ' : 'FAIL'}  ${c.label.padEnd(10)} ${c.detail}`);
+  print(`clickup-internal-mcp ${packageJson.version}`);
+  for (const c of checks) print(`${c.ok ? 'ok  ' : 'FAIL'}  ${c.label.padEnd(10)} ${c.detail}`);
   process.exitCode = checks.every((c) => c.ok) ? 0 : 1;
 }
 
 function purge(settings: Settings, args: readonly string[]): void {
   if (!args.includes('--yes')) {
-    say(
+    print(
       `This deletes the local cache at ${settings.dataDir} (tracked list, docs, tasks, images, notes).`,
     );
-    say('Run again with --yes to confirm. ClickUp itself is not touched.');
+    print('Run again with --yes to confirm. ClickUp itself is not touched.');
     process.exitCode = 1;
     return;
   }
   rmSync(settings.dataDir, { recursive: true, force: true });
-  say(`Deleted ${settings.dataDir}.`);
+  print(`Deleted ${settings.dataDir}.`);
 }
 
 function setup(args: readonly string[]): void {
@@ -83,7 +87,7 @@ function setup(args: readonly string[]): void {
   }
   const launch = launchFor(process.execPath, join(import.meta.dirname, 'index.ts'));
   const only = wanted.filter(isClientId);
-  say(
+  print(
     setupGuide(
       launch,
       suggestedEnvFiles(launch.args.length === 0),
@@ -95,11 +99,12 @@ function setup(args: readonly string[]): void {
 async function main(): Promise<void> {
   const [command = 'stdio', ...args] = process.argv.slice(2);
   if (command === 'setup') return setup(args);
+  if (command === 'version' || command === '--version') return print(packageJson.version);
   const settings = loadSettings();
   if (command === 'doctor') return doctor(settings);
   if (command === 'purge') return purge(settings, args);
   if (command === 'stdio') return serve(settings);
-  say(`Unknown command "${command}". Use: stdio (default), setup, doctor, purge --yes`);
+  say(`Unknown command "${command}". Use: stdio (default), setup, doctor, version, purge --yes`);
   process.exitCode = 2;
 }
 

@@ -136,7 +136,6 @@
     },
     {
       "files": [
-        "src/adapters/runtime/**",
         "src/adapters/store/sqlite.ts"
       ],
       "rules": {

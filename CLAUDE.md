@@ -12,8 +12,9 @@ No other runtime dependency.
 
 - Run: `bun start` (stdio), `bun run setup`, `bun run doctor`, `bun run purge -- --yes`.
 - Client snippets: `src/config/client-configs.ts`; guide in [docs/clients.md](docs/clients.md).
-- Tools are described in [docs/tools.md](docs/tools.md), the design in [docs/plan.md](docs/plan.md),
-  measurements in [docs/benchmarks.md](docs/benchmarks.md).
+- Tools are described in [docs/tools.md](docs/tools.md), the design in
+  [docs/architecture.md](docs/architecture.md), measurements in [docs/benchmarks.md](docs/benchmarks.md).
+- Releases: [RELEASING.md](RELEASING.md). Operational facts: [.claude/OPERATIONS.md](.claude/OPERATIONS.md).
 
 ## Quality Gates
 
@@ -34,6 +35,12 @@ Never read, print or edit any `.env` file: it holds the user's ClickUp token. Th
 hook refuses tool calls that name one, and settings deny reading them. `.env.example` is fine.
 Tests build fake tokens at runtime.
 
+## Hooks
+
+- **PreToolUse `block-env.py`** blocks any access to `.env` files.
+- **PostToolUse `post-edit.ts`** formats the file you just wrote, then lints it and checks its
+  comment style. Findings come back as context. It never blocks.
+
 ## Conventions
 
 - **Language.** Reply in the language the user writes in. Code, comments, commits, pull requests
@@ -42,6 +49,24 @@ Tests build fake tokens at runtime.
 - **Names.** Files are kebab-case. Tools are `<name>.tool.ts`, services `<domain>.service.ts`,
   formatters `<domain>.format.ts`, type-only files `*.types.ts`.
 - **Commits.** `type: description` (`feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`).
+  No `Co-Authored-By` or other attribution trailer, and no "Generated with" line in pull requests.
+- **Branches.** `internal/<scope>`. Open a pull request, wait for the **Self Test** check, and merge
+  with a merge commit.
+- **Versioning.** Add a line under `[Unreleased]` in `CHANGELOG.md` for what users notice; a release
+  bumps `package.json` as in [RELEASING.md](RELEASING.md). `bun run check:version` verifies both.
 - **Package manager.** Bun (`bun install`, `bun add`).
 - **No company data in the repo.** No workspace ids, names or content in code, tests, fixtures or
   docs. Fixtures are invented.
+
+## Context Loading
+
+| Task | Load |
+| ---- | ---- |
+| Any code change | `.claude/rules/architecture/hexagonal.md`, `.claude/rules/common/folder-shape.md` |
+| A tool's input, output or description | `.claude/rules/mcp/tool-design.md` |
+| ClickUp calls, the token, downloads, what is written to disk | `.claude/rules/security/read-only.md` |
+| Client setup snippets | `docs/clients.md`, `src/config/client-configs.ts` |
+| Tests and coverage | `.claude/rules/typescript/coverage.md` |
+| Lint config | `.claude/docs/lint-config.md` |
+| Running it, settings, data folder | `.claude/OPERATIONS.md` |
+| Something that broke before | `.claude/anti-patterns/INDEX.md` |

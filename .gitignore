@@ -1,0 +1,17 @@
+# Secrets: the ClickUp personal token
+.env
+.env.*
+!.env.example
+
+# Dependencies, caches, build output and generated reports
+node_modules/
+.cache/
+coverage/
+dist/
+
+# Local data written by the server when CLICKUP_DATA_DIR points inside the project
+.data/
+mirror/
+
+# OS files
+.DS_Store

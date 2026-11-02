@@ -1,0 +1,31 @@
+[test]
+# Tests live in __tests__/ folders beside their source. They never touch the network: the ClickUp
+# API is a fake fetch (src/testing/fake-clickup/).
+root = "."
+
+# 100 % lines and functions per file when --coverage is passed (`bun run test:coverage`).
+# coverage-files.mjs then fails on any source file no test loaded. The ignore list is closed:
+# composition roots, raw runtime clients, type-only files and the test harness.
+coverageThreshold = 1.0
+coverageSkipTestFiles = true
+coverageReporter = ["text", "lcov"]
+coverageDir = "coverage"
+coveragePathIgnorePatterns = [
+  # Composition roots: wiring with no logic of their own. Tests drive them through createRuntime.
+  "src/index.ts",
+  "src/env.ts",
+
+  # Raw runtime clients: bun:sqlite or node:sqlite, only one branch runs under a runtime.
+  "src/adapters/store/sqlite.ts",
+
+  # The shared test harness itself.
+  "src/testing/**",
+
+  # Type-only declarations: erased at runtime.
+  "src/ports/**",
+  "src/**/*.types.ts",
+
+  # Developer and CI scripts, run by path from the shell.
+  "scripts/**",
+  ".claude/**",
+]

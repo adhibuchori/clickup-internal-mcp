@@ -15,8 +15,8 @@ you have to act on. How a release is made: [RELEASING.md](RELEASING.md).
 - CI on every pull request (Self Test): gates, tests on macOS and Windows, the Node runtime, the
   compiled executable on Windows and macOS, secret scan and workflow lint; CodeQL and dependency
   review when GitHub Code Security is available.
-- Contributor docs: CONTRIBUTING, SECURITY, CODE_OF_CONDUCT, docs/architecture.md, issue and pull
-  request templates, CODEOWNERS.
+- Contributor docs: CONTRIBUTING, SECURITY (private vulnerability reporting), CODE_OF_CONDUCT,
+  docs/architecture.md, issue and pull request templates, CODEOWNERS.
 
 ## [0.2.0] - 2026-11-02
 

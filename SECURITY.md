@@ -12,8 +12,10 @@ Only the latest release gets fixes.
 
 ## Reporting a Vulnerability
 
-Report it privately to the maintainer ([@adhibuchori](https://github.com/adhibuchori)); do not open
-a public issue. Include:
+Please report it privately: open a
+[security advisory](https://github.com/adhibuchori/clickup-internal-mcp/security/advisories/new) on
+this repository, or contact the maintainer ([@adhibuchori](https://github.com/adhibuchori))
+directly. Do not open a public issue, and leave company content out of the report. Include:
 
 - what can be read, written, sent or reached that should not be;
 - the tool call (with ids replaced) or the command that shows it;

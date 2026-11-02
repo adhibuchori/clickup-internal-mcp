@@ -62,24 +62,29 @@ Tags never move. A mistake in a release is fixed by a new patch release.
 
 ## GitHub Settings
 
-The repository is **private**. On a private repository, rulesets, secret scanning with push
-protection, CodeQL and dependency review need a paid plan (GitHub Team, plus GitHub Code Security for
-the last two). The pre-commit hook and the Self Test workflow guard the same things without them.
+The repository is public, and every setting below is free for a public repository. If it ever goes
+private, rulesets, secret scanning and the two security workflows need a paid plan; the pre-commit
+hook and the Self Test workflow still guard the same things without them.
 
-- A ruleset (or branch protection) on `main` when the plan allows it:
+- A ruleset on `main`:
   - block force pushes and deletion;
   - require a pull request, merged with a merge commit;
-  - require the **Self Test** status check;
+  - require the **Self Test** status check from GitHub Actions;
   - no bypass, not even for admins.
 - A tag ruleset on `v*` that blocks updates, force pushes and deletion.
+- Immutable releases.
 - Merge commits only, and delete the branch on merge.
 - Actions:
   - workflow permissions are read-only;
   - no workflow may approve pull requests;
   - every action is pinned to a full commit SHA.
-- Dependabot alerts.
-- When GitHub Code Security is available, set the repository variable `CODE_SECURITY` to `true` so
-  the CodeQL and dependency-review workflows run; they skip themselves otherwise.
+- Secret scanning with **push protection**.
+- **Private vulnerability reporting.** The advisory link in [SECURITY.md](SECURITY.md) depends on it.
+- **Dependabot alerts**, which also turn on the dependency graph that the dependency-review workflow
+  needs.
 
-Actions minutes: a private repository spends the plan's minutes, and macOS runners count ten times
-and Windows runners twice. Self Test runs only on pull requests, never on a push or a schedule.
+The CodeQL and dependency-review workflows run on every pull request in a public repository. In a
+private one they run only when GitHub Code Security is available and the repository variable
+`CODE_SECURITY` is `true`.
+
+Self Test runs only on pull requests, never on a push or a schedule.
